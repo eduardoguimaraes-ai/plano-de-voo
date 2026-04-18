@@ -1,28 +1,1612 @@
-<!-- ═══════════════════ TELA DE LOGIN -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plano de Voo · Leitura de Indicadores e KPIs · Onfly 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:      #0B1F3A;
+    --navy-mid:  #122848;
+    --navy-card: #162F52;
+    --navy-line: #1E3D66;
+    --green:     #00C896;
+    --green-dim: #009E78;
+    --green-bg:  #003D2D;
+    --blue-acc:  #2196F3;
+    --orange:    #FF7A2F;
+    --orange-bg: #3D1F00;
+    --red:       #F25757;
+    --text-hi:   #F0F8FF;
+    --text-mid:  #A8C8E8;
+    --text-lo:   #5A84A8;
+    --font-head: 'Sora', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #07121F;
+    font-family: var(--font-body);
+    color: var(--text-hi);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ─────────────────────────────── */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(7,18,31,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--navy-line);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px;
+  }
+  .nav-brand { font-family: var(--font-head); font-size: 13px; font-weight: 600; color: var(--green); letter-spacing: .12em; }
+  .nav-controls { display: flex; align-items: center; gap: 10px; }
+  .nav-btn {
+    padding: 6px 16px; font-size: 12px; font-family: var(--font-body);
+    border: 1px solid var(--navy-line); background: transparent;
+    color: var(--text-mid); border-radius: 6px; cursor: pointer;
+    transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--navy-card); color: var(--text-hi); }
+  .nav-btn.active { background: var(--green); color: var(--navy); border-color: var(--green); font-weight: 600; }
+  .slide-counter { font-size: 12px; color: var(--text-lo); min-width: 60px; text-align: center; }
+  .progress-bar { height: 3px; background: var(--navy-line); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), #00A8E0); transition: width .3s; }
+
+  /* ── SLIDES ──────────────────────────── */
+  .deck { padding-top: 57px; }
+  .slide {
+    display: none;
+    min-height: calc(100vh - 57px);
+    padding: 48px 64px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 85% 10%, rgba(0,200,150,.07) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 10% 90%, rgba(33,150,243,.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* ── MODULE BADGE ────────────────────── */
+  .mod-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,200,150,.12); border: 1px solid rgba(0,200,150,.3);
+    border-radius: 6px; padding: 5px 14px; margin-bottom: 22px;
+    font-size: 11px; font-weight: 600; color: var(--green);
+    letter-spacing: .10em; font-family: var(--font-head);
+    width: fit-content;
+  }
+
+  /* ── HEADINGS ────────────────────────── */
+  .slide-title {
+    font-family: var(--font-head); font-size: clamp(26px,3vw,38px);
+    font-weight: 700; color: var(--text-hi); line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .slide-sub {
+    font-size: 15px; color: var(--text-mid); margin-bottom: 28px;
+    font-weight: 400;
+  }
+  .accent-bar {
+    width: 44px; height: 4px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--green), #00A8E0);
+    margin-bottom: 28px;
+  }
+
+  /* ── TWO-COL ──────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+  .three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; flex: 1; }
+
+  /* ── CARD ────────────────────────────── */
+  .card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-line);
+    border-radius: 12px; padding: 20px 22px;
+  }
+  .card-label {
+    font-size: 10px; font-weight: 600; color: var(--text-lo);
+    letter-spacing: .10em; margin-bottom: 6px;
+    font-family: var(--font-head);
+  }
+  .card-value {
+    font-size: 32px; font-weight: 700; color: var(--text-hi);
+    font-family: var(--font-head); line-height: 1;
+  }
+  .card-note { font-size: 12px; color: var(--text-lo); margin-top: 4px; }
+  .card.accent-left { border-left: 4px solid var(--green); border-radius: 0 12px 12px 0; }
+  .card.red-val .card-value { color: var(--red); }
+  .card.orange-val .card-value { color: var(--orange); }
+  .card.green-val .card-value { color: var(--green); }
+
+  /* ── INSIGHT BOX ─────────────────────── */
+  .insight {
+    background: rgba(0,200,150,.08);
+    border-left: 4px solid var(--green);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px; font-size: 14px; color: var(--text-mid);
+    line-height: 1.6; margin: 16px 0;
+  }
+  .warn {
+    background: rgba(255,122,47,.10);
+    border: 1px solid rgba(255,122,47,.35);
+    border-radius: 10px;
+    padding: 14px 18px; font-size: 14px; color: #FFB070;
+    line-height: 1.6; margin: 16px 0;
+  }
+
+  /* ── BULLET LIST ─────────────────────── */
+  .bullet-list { list-style: none; }
+  .bullet-list li {
+    font-size: 15px; color: var(--text-mid); padding: 7px 0;
+    padding-left: 20px; position: relative; line-height: 1.55;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .bullet-list li:before {
+    content: '';
+    position: absolute; left: 0; top: 16px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+  }
+  .bullet-list li strong { color: var(--text-hi); }
+
+  /* ── CHECKLIST ───────────────────────── */
+  .checklist-item {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 16px; background: var(--navy-card);
+    border: 1px solid var(--navy-line); border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .check-num {
+    width: 28px; height: 28px; flex-shrink: 0;
+    background: rgba(0,200,150,.15); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--green);
+    font-family: var(--font-head);
+  }
+  .check-title { font-size: 14px; font-weight: 600; color: var(--text-hi); margin-bottom: 3px; }
+  .check-desc { font-size: 13px; color: var(--text-lo); line-height: 1.5; }
+
+  /* ── METRIC GRID ─────────────────────── */
+  .metric-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin: 18px 0; }
+  .metric-grid.two { grid-template-columns: repeat(2,1fr); }
+
+  /* ── TABLE ───────────────────────────── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px; }
+  .data-table th {
+    background: var(--navy-card); color: var(--text-lo);
+    padding: 11px 14px; text-align: left; font-weight: 500;
+    font-size: 11px; letter-spacing: .06em; border-bottom: 1px solid var(--navy-line);
+  }
+  .data-table td { padding: 10px 14px; color: var(--text-mid); border-bottom: 1px solid rgba(255,255,255,.04); }
+  .data-table tr:hover td { background: var(--navy-card); }
+  .data-table td.hi { color: var(--text-hi); font-weight: 600; }
+  .data-table td.green { color: var(--green); font-weight: 600; }
+  .data-table td.blue { color: #60AAFF; font-weight: 600; }
+
+  /* ── TAG ─────────────────────────────── */
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 3px 10px; border-radius: 4px; letter-spacing: .05em;
+  }
+  .tag-green { background: rgba(0,200,150,.15); color: var(--green); }
+  .tag-blue  { background: rgba(33,150,243,.15); color: #60AAFF; }
+  .tag-orange{ background: rgba(255,122,47,.15); color: var(--orange); }
+  .tag-red   { background: rgba(242,87,87,.15); color: var(--red); }
+  .tag-gray  { background: rgba(90,132,168,.15); color: var(--text-lo); }
+
+  /* ── ALERT ROWS ──────────────────────── */
+  .alert-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .alert-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .alert-title { font-size: 14px; font-weight: 600; color: var(--text-hi); margin-bottom: 3px; }
+  .alert-action { font-size: 13px; color: var(--text-lo); }
+
+  /* ── FOOTER ──────────────────────────── */
+  .slide-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 20px; margin-top: auto;
+    border-top: 1px solid var(--navy-line);
+    font-size: 11px; color: var(--text-lo);
+  }
+
+  /* ── COVER ───────────────────────────── */
+  .cover-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .cover-eyebrow { font-size: 12px; font-weight: 600; color: var(--green); letter-spacing: .18em; margin-bottom: 16px; font-family: var(--font-head); }
+  .cover-title {
+    font-family: var(--font-head); font-size: clamp(40px,5vw,62px);
+    font-weight: 700; line-height: 1.1; color: var(--text-hi);
+    margin-bottom: 12px;
+  }
+  .cover-title span { color: var(--green); }
+  .cover-sub { font-size: 17px; color: var(--text-mid); margin-bottom: 32px; max-width: 560px; }
+  .cover-tags { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cover-tag {
+    padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--navy-line); color: var(--text-mid);
+    background: var(--navy-card);
+  }
+
+  /* ── STEP FLOW ───────────────────────── */
+  .step-flow { display: flex; align-items: stretch; gap: 0; margin: 20px 0; flex: 1; }
+  .step {
+    flex: 1; background: var(--navy-card); border: 1px solid var(--navy-line);
+    border-radius: 10px; padding: 16px 14px; text-align: center;
+    position: relative;
+  }
+  .step-num { font-size: 22px; font-weight: 700; color: var(--green); font-family: var(--font-head); }
+  .step-label { font-size: 12px; font-weight: 600; color: var(--text-hi); margin: 6px 0 4px; }
+  .step-desc { font-size: 11px; color: var(--text-lo); line-height: 1.45; }
+  .step-arrow {
+    display: flex; align-items: center; color: var(--navy-line);
+    font-size: 18px; padding: 0 4px; flex-shrink: 0;
+  }
+
+  /* ── EXERCISE ────────────────────────── */
+  .exercise-q {
+    display: flex; gap: 14px; padding: 13px 16px;
+    background: var(--navy-card); border-radius: 10px;
+    border: 1px solid var(--navy-line); margin-bottom: 10px;
+  }
+  .q-num { font-size: 13px; font-weight: 700; color: var(--green); min-width: 20px; font-family: var(--font-head); }
+  .q-text { font-size: 14px; color: var(--text-mid); line-height: 1.55; }
+
+  /* ── PLAN ITEM ───────────────────────── */
+  .plan-item {
+    display: flex; gap: 14px; align-items: center;
+    padding: 16px 18px; background: var(--navy-card);
+    border: 1px solid var(--navy-line); border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  .plan-check {
+    width: 20px; height: 20px; border: 2px solid var(--green);
+    border-radius: 4px; flex-shrink: 0;
+  }
+  .plan-text { font-size: 15px; color: var(--text-mid); }
+
+  /* ── SUMMARY GRID ────────────────────── */
+  .summary-card {
+    background: var(--navy-card); border: 1px solid var(--navy-line);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .sum-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: rgba(0,200,150,.12); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--green); text-align: center;
+    font-family: var(--font-head);
+  }
+  .sum-title { font-size: 13px; font-weight: 600; color: var(--text-hi); margin-bottom: 3px; }
+  .sum-desc { font-size: 12px; color: var(--text-lo); line-height: 1.5; }
+
+  /* ── BU BAR ──────────────────────────── */
+  .bu-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; padding: 12px 16px; background: var(--navy-card); border-radius: 10px; border: 1px solid var(--navy-line); }
+  .bu-name { font-size: 14px; font-weight: 600; color: var(--text-hi); min-width: 110px; }
+  .bu-bar-wrap { flex: 1; height: 8px; background: var(--navy); border-radius: 4px; overflow: hidden; }
+  .bu-bar { height: 100%; border-radius: 4px; }
+  .bu-pct { font-size: 14px; font-weight: 700; min-width: 54px; text-align: right; font-family: var(--font-head); }
+  .bu-info { font-size: 11px; color: var(--text-lo); min-width: 160px; text-align: right; }
+
+  /* ── PRINT / PDF ─────────────────────── */
+  @media print {
+    .nav, .progress-bar { display: none !important; }
+    .slide { display: flex !important; page-break-after: always; min-height: 100vh; }
+    body { background: var(--navy) !important; }
+  }
+
+  /* ══════════════════════════════════════
+     MODAL GLOSSÁRIO
+  ══════════════════════════════════════ */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(4, 10, 20, 0.88);
+    backdrop-filter: blur(8px);
+    overflow-y: auto;
+    padding: 24px 16px 40px;
+  }
+  .modal-overlay.open { display: block; }
+
+  .modal-box {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: var(--navy-mid);
+    border: 1px solid var(--navy-line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* cabeçalho modal */
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px;
+    background: var(--navy-card);
+    border-bottom: 1px solid var(--navy-line);
+  }
+  .modal-header-left {}
+  .modal-eyebrow {
+    font-size: 10px; font-weight: 600; color: var(--green);
+    letter-spacing: .14em; font-family: var(--font-head); margin-bottom: 4px;
+  }
+  .modal-title {
+    font-family: var(--font-head); font-size: 22px; font-weight: 700; color: var(--text-hi);
+  }
+  .modal-title span { color: var(--green); }
+  .modal-subtitle { font-size: 13px; color: var(--text-mid); margin-top: 3px; }
+
+  .modal-close {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--navy-line); background: transparent;
+    color: var(--text-mid); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s; flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--red); color: white; border-color: var(--red); }
+
+  /* legenda */
+  .modal-legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    padding: 12px 32px;
+    border-bottom: 1px solid var(--navy-line);
+    background: rgba(11,31,58,.6);
+  }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-mid); }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* tabela glossário */
+  .modal-body { padding: 0 0 8px; }
+
+  .gtable {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    table-layout: fixed;
+  }
+  .gtable colgroup col:nth-child(1) { width: 20%; }
+  .gtable colgroup col:nth-child(2) { width: 37%; }
+  .gtable colgroup col:nth-child(3) { width: 43%; }
+
+  .gtable thead tr { background: rgba(18,40,72,.8); }
+  .gtable thead th {
+    padding: 12px 16px; text-align: left;
+    font-family: var(--font-head); font-size: 10px; font-weight: 600;
+    color: var(--green); letter-spacing: .09em;
+    border-bottom: 2px solid var(--green);
+    position: sticky; top: 0;
+  }
+
+  /* separador de categoria */
+  .gtable tr.gcat td {
+    background: rgba(0,200,150,.10);
+    border-top: 1px solid rgba(0,200,150,.25);
+    border-bottom: 1px solid rgba(0,200,150,.25);
+    padding: 7px 16px;
+    font-family: var(--font-head); font-size: 10px; font-weight: 700;
+    letter-spacing: .12em; color: var(--green);
+  }
+
+  .gtable tbody tr { border-bottom: 1px solid rgba(255,255,255,.05); }
+  .gtable tbody tr:nth-child(even):not(.gcat) { background: rgba(18,40,72,.4); }
+  .gtable tbody tr:hover:not(.gcat) { background: rgba(0,200,150,.05); }
+
+  .gtable td { padding: 12px 16px; vertical-align: top; line-height: 1.55; color: var(--text-mid); }
+
+  /* coluna nome */
+  .gtable td.gname {
+    font-family: var(--font-head); font-weight: 600; color: var(--text-hi); font-size: 13px;
+  }
+  .gtable td.gname .gacr {
+    display: block; font-size: 15px; font-weight: 700; margin-bottom: 3px; color: var(--text-hi);
+  }
+  .gtable td.gname .gfull { font-size: 11px; color: var(--text-lo); display: block; margin-bottom: 5px; }
+
+  /* tags */
+  .gtag {
+    display: inline-block; font-size: 9px; font-weight: 600;
+    padding: 2px 7px; border-radius: 3px; letter-spacing: .04em; margin-right: 3px; margin-top: 3px;
+  }
+  .gr  { background: rgba(0,200,150,.15); color: var(--green); }
+  .gl  { background: rgba(255,122,47,.15); color: var(--orange); }
+  .gla { background: rgba(33,150,243,.15); color: #60AAFF; }
+  .gq  { background: rgba(242,87,87,.12);  color: var(--red); }
+  .gm  { background: rgba(90,132,168,.15); color: var(--text-lo); }
+
+  /* coluna desc */
+  .gtable td.gdesc { font-size: 13px; }
+  .gtable td.gdesc strong { color: var(--text-hi); font-weight: 600; }
+
+  /* coluna exemplos */
+  .gtable td.gex { font-size: 12.5px; }
+  .gex-item {
+    display: flex; gap: 8px; margin-bottom: 8px;
+    padding: 8px 10px;
+    background: rgba(11,31,58,.8);
+    border-radius: 6px; border-left: 2.5px solid var(--green);
+    line-height: 1.5;
+  }
+  .gex-item:last-child { margin-bottom: 0; }
+  .gex-n { font-family: var(--font-head); font-size: 10px; font-weight: 700; color: var(--green); flex-shrink: 0; min-width: 12px; }
+  .gex-t { color: var(--text-mid); }
+  .gex-t strong { color: var(--text-hi); }
+
+  /* rodapé modal */
+  .modal-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 32px;
+    border-top: 1px solid var(--navy-line);
+    font-size: 11px; color: var(--text-lo);
+    background: var(--navy-card);
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ TELA DE LOGIN -->
 <div id="login-screen" style="
-  position:fixed;inset:0;z-index:9999;
-  background:#07121F;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Sora',sans-serif;
+  position: fixed; inset: 0; z-index: 9999;
+  background: #07121F;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Sora', sans-serif;
 ">
   <div style="
-    background:#122848;border:1px solid #1E3D66;border-radius:16px;
-    padding:48px 44px;width:100%;max-width:400px;text-align:center;
-    box-shadow:0 24px 80px rgba(0,0,0,.6);
+    background: #122848;
+    border: 1px solid #1E3D66;
+    border-radius: 16px;
+    padding: 48px 44px;
+    width: 100%; max-width: 400px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0,0,0,.6);
   ">
-    <div style="font-size:11px;font-weight:600;color:#00C896;letter-spacing:.18em;margin-bottom:10px;">ONFLY · 2026</div>
-    <div style="font-size:26px;font-weight:700;color:#F0F8FF;line-height:1.2;margin-bottom:6px;">Plano de Voo</div>
-    <div style="font-size:13px;color:#A8C8E8;margin-bottom:32px;">Leitura de Indicadores e KPIs<br>Demand Generation · Team Leaders</div>
-    <div style="margin-bottom:16px;text-align:left;">
-      <label style="font-size:11px;font-weight:600;color:#5A84A8;letter-spacing:.09em;display:block;margin-bottom:8px;">SENHA DE ACESSO</label>
-      <input id="senha-input" type="password" placeholder="Digite a senha"
-        onkeydown="if(event.key==='Enter')verificarSenha()"
-        style="width:100%;padding:12px 16px;background:#0B1F3A;border:1px solid #1E3D66;border-radius:8px;color:#F0F8FF;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;"
-        onfocus="this.style.borderColor='#00C896'"
-        onblur="this.style.borderColor='#1E3D66'">
+    <!-- Logo / Eyebrow -->
+    <div style="font-size:11px;font-weight:600;color:#00C896;letter-spacing:.18em;margin-bottom:10px;">
+      ONFLY · 2026
     </div>
-    <div id="erro-msg" style="display:none;font-size:12px;color:#F25757;margin-bottom:12px;padding:8px 12px;background:rgba(242,87,87,.1);border-radius:6px;border:1px solid rgba(242,87,87,.25);">Senha incorreta. Tente novamente.</div>
-    <button onclick="verificarSenha()" style="width:100%;padding:13px;background:#00C896;color:#0B1F3A;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;letter-spacing:.04em;"
+
+    <!-- Título -->
+    <div style="font-size:26px;font-weight:700;color:#F0F8FF;line-height:1.2;margin-bottom:6px;">
+      Plano de Voo
+    </div>
+    <div style="font-size:13px;color:#A8C8E8;margin-bottom:32px;">
+      Leitura de Indicadores e KPIs<br>Demand Generation · Team Leaders
+    </div>
+
+    <!-- Campo de senha -->
+    <div style="margin-bottom:16px;text-align:left;">
+      <label style="font-size:11px;font-weight:600;color:#5A84A8;letter-spacing:.09em;display:block;margin-bottom:8px;">
+        SENHA DE ACESSO
+      </label>
+      <input
+        id="senha-input"
+        type="password"
+        placeholder="Digite a senha"
+        onkeydown="if(event.key==='Enter') verificarSenha()"
+        style="
+          width:100%; padding:12px 16px;
+          background:#0B1F3A; border:1px solid #1E3D66;
+          border-radius:8px; color:#F0F8FF;
+          font-size:15px; font-family:'DM Sans',sans-serif;
+          outline:none; transition:border .2s;
+        "
+        onfocus="this.style.borderColor='#00C896'"
+        onblur="this.style.borderColor='#1E3D66'"
+      >
+    </div>
+
+    <!-- Mensagem de erro -->
+    <div id="erro-msg" style="
+      display:none; font-size:12px; color:#F25757;
+      margin-bottom:12px; padding:8px 12px;
+      background:rgba(242,87,87,.1); border-radius:6px;
+      border:1px solid rgba(242,87,87,.25);
+    ">
+      Senha incorreta. Tente novamente.
+    </div>
+
+    <!-- Botão -->
+    <button
+      onclick="verificarSenha()"
+      style="
+        width:100%; padding:13px;
+        background:#00C896; color:#0B1F3A;
+        border:none; border-radius:8px;
+        font-size:14px; font-weight:700;
+        font-family:'Sora',sans-serif;
+        cursor:pointer; transition:all .2s;
+        letter-spacing:.04em;
+      "
       onmouseover="this.style.background='#00A87E'"
-      onmouseout="this.style.background='#00C896'">ACESSAR →</button>
-    <div style="margin-top:24px;font-size
+      onmouseout="this.style.background='#00C896'"
+    >
+      ACESSAR →
+    </button>
+
+    <!-- Rodapé -->
+    <div style="margin-top:24px;font-size:11px;color:#1E3D66;">
+      Onfly · Demand Generation · 2026
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIGURAÇÃO DA SENHA ──────────────────────
+  // Altere aqui para definir a senha de acesso
+  const SENHA_CORRETA = 'onfly2026';
+  // ──────────────────────────────────────────────
+
+  function verificarSenha() {
+    const input = document.getElementById('senha-input').value;
+    const erro  = document.getElementById('erro-msg');
+
+    if (input === SENHA_CORRETA) {
+      // Anima saída da tela de login
+      const tela = document.getElementById('login-screen');
+      tela.style.transition = 'opacity .4s';
+      tela.style.opacity = '0';
+      setTimeout(() => tela.style.display = 'none', 400);
+    } else {
+      // Mostra erro e destaca o campo
+      erro.style.display = 'block';
+      const campo = document.getElementById('senha-input');
+      campo.style.borderColor = '#F25757';
+      campo.value = '';
+      campo.focus();
+      setTimeout(() => {
+        campo.style.borderColor = '#1E3D66';
+        erro.style.display = 'none';
+      }, 3000);
+    }
+  }
+
+  // Foca automaticamente no campo ao carregar
+  window.addEventListener('load', () => {
+    document.getElementById('senha-input').focus();
+  });
+</script>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-brand">ONFLY · PLANO DE VOO · 2026</span>
+  <div class="nav-controls">
+    <button class="nav-btn" onclick="go(-1)">← anterior</button>
+    <span class="slide-counter" id="counter">1 / 31</span>
+    <button class="nav-btn" onclick="go(1)">próximo →</button>
+    <button class="nav-btn" onclick="toggleGlossario()" id="btn-glossario">📖 Glossário</button>
+    <button class="nav-btn active" onclick="window.print()">⬇ PDF</button>
+  </div>
+</nav>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════ SLIDE 1 – CAPA -->
+<div class="slide active">
+  <div class="cover-wrap">
+    <div class="cover-eyebrow">PLANO DE VOO · ONFLY 2026</div>
+    <div class="cover-title">Leitura de<br><span>Indicadores e KPIs</span></div>
+    <div class="cover-sub">Demand Generation · 14h às 18h · Team Leaders</div>
+    <div class="cover-tags">
+      <span class="cover-tag">4 horas · sem pausa</span>
+      <span class="cover-tag">5 Módulos</span>
+      <span class="cover-tag">31 slides</span>
+      <span class="cover-tag">Dados reais Q1 · Abril 2026</span>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>1 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 2 – AGENDA -->
+<div class="slide">
+  <div class="mod-badge">AGENDA DA AULA</div>
+  <div class="slide-title">O que vamos ver hoje</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+    <div class="card" style="display:flex;gap:20px;align-items:center;">
+      <span style="font-size:13px;color:var(--green);font-weight:600;min-width:120px;font-family:var(--font-head)">14:00 – 14:15</span>
+      <span style="font-size:15px;color:var(--text-mid)">Introdução — Por que você está aqui? SLG e W = F × d</span>
+    </div>
+    <div class="card" style="display:flex;gap:20px;align-items:center;">
+      <span style="font-size:13px;color:var(--green);font-weight:600;min-width:120px;font-family:var(--font-head)">14:15 – 15:00</span>
+      <span style="font-size:15px;color:var(--text-mid)"><strong style="color:var(--text-hi)">Módulo 1</strong> · Fundamentos de KPIs, tipos de métricas e Leading vs Lagging</span>
+    </div>
+    <div class="card" style="display:flex;gap:20px;align-items:center;">
+      <span style="font-size:13px;color:var(--green);font-weight:600;min-width:120px;font-family:var(--font-head)">15:00 – 15:45</span>
+      <span style="font-size:15px;color:var(--text-mid)"><strong style="color:var(--text-hi)">Módulo 2</strong> · Dashboard Plano de Voo: estrutura e navegação</span>
+    </div>
+    <div class="card" style="display:flex;gap:20px;align-items:center;">
+      <span style="font-size:13px;color:var(--green);font-weight:600;min-width:120px;font-family:var(--font-head)">15:45 – 16:30</span>
+      <span style="font-size:15px;color:var(--text-mid)"><strong style="color:var(--text-hi)">Módulo 3</strong> · Funil, GMV e Método Científico</span>
+    </div>
+    <div class="card" style="display:flex;gap:20px;align-items:center;">
+      <span style="font-size:13px;color:var(--green);font-weight:600;min-width:120px;font-family:var(--font-head)">16:30 – 17:15</span>
+      <span style="font-size:15px;color:var(--text-mid)"><strong style="color:var(--text-hi)">Módulo 4</strong> · MTD e Gestão de Metas</span>
+    </div>
+    <div class="card" style="display:flex;gap:20px;align-items:center;">
+      <span style="font-size:13px;color:var(--green);font-weight:600;min-width:120px;font-family:var(--font-head)">17:15 – 18:00</span>
+      <span style="font-size:15px;color:var(--text-mid)"><strong style="color:var(--text-hi)">Módulo 5</strong> · Diagnóstico, alertas, exercício e plano de ação</span>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>2 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 3 – POR QUE VOCÊ ESTÁ AQUI -->
+<div class="slide">
+  <div class="mod-badge">INTRODUÇÃO · 14:00</div>
+  <div class="slide-title">Por que você está aqui hoje?</div>
+  <div class="accent-bar"></div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <div class="card-label" style="color:var(--text-lo)">ANTES — BDR</div>
+        <ul class="bullet-list" style="margin-top:8px;">
+          <li>Medido pelo seu número <strong>individual</strong></li>
+          <li>Controla a <strong>própria agenda</strong></li>
+          <li>Executa o processo</li>
+          <li>Responde por <strong>1 pessoa: você</strong></li>
+        </ul>
+      </div>
+      <div class="card" style="border-left:4px solid var(--green);border-radius:0 12px 12px 0;">
+        <div class="card-label" style="color:var(--green)">AGORA — TEAM LEADER</div>
+        <ul class="bullet-list" style="margin-top:8px;">
+          <li>Medido pelo número do <strong>seu time</strong></li>
+          <li>Organiza a agenda de <strong>8–12 pessoas</strong></li>
+          <li>Melhora o processo <strong>dos outros</strong></li>
+          <li>Responde por <strong>todo o squad</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;justify-content:center;gap:16px;">
+      <div class="insight" style="font-size:15px;">Um TL que não lê indicadores <strong style="color:var(--text-hi)">não sabe onde agir, quando agir e em quem agir.</strong></div>
+      <div class="insight" style="font-size:15px;">Essa aula existe para te dar a habilidade de <strong style="color:var(--green)">ler dados e transformá-los em decisões concretas</strong> — todos os dias.</div>
+      <div style="font-size:15px;color:var(--text-mid);line-height:1.7;padding:0 4px;">
+        Você não precisa ser o melhor BDR do time.<br>
+        Você precisa fazer o time todo <strong style="color:var(--green)">performar melhor.</strong>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>3 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 4 – SLG -->
+<div class="slide">
+  <div class="mod-badge">INTRODUÇÃO · 14:05</div>
+  <div class="slide-title">O modelo que move a Onfly: SLG</div>
+  <div class="accent-bar"></div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card">
+        <div class="card-label">O QUE É SALES-LED GROWTH</div>
+        <ul class="bullet-list" style="margin-top:8px;">
+          <li>Crescimento puxado por <strong>pessoas</strong>, não por produto</li>
+          <li>Cada BDR é um <strong>vetor direto de receita</strong></li>
+          <li>A empresa cresce na <strong>velocidade do time comercial</strong></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">DIFERENÇA DOS OUTROS MODELOS</div>
+        <ul class="bullet-list" style="margin-top:8px;">
+          <li><strong style="color:#60AAFF">PLG</strong> — crescimento pelo produto (freemium, autoatendimento)</li>
+          <li><strong style="color:#60AAFF">MLG</strong> — crescimento pelo marketing (inbound, ads)</li>
+          <li><strong style="color:var(--green)">SLG</strong> — crescimento pela <strong>força de vendas humana</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;justify-content:center;gap:16px;">
+      <div class="insight" style="font-size:15px;">Na Onfly, não tem algoritmo nem feature que substitua o time comercial. Cada reunião marcada, cada SAL gerado é <strong style="color:var(--text-hi)">esforço humano direto.</strong></div>
+      <div class="card" style="border:1px solid rgba(0,200,150,.3);background:rgba(0,200,150,.06);">
+        <div class="card-label" style="color:var(--green)">POR QUE ISSO IMPORTA PARA O TL</div>
+        <p style="font-size:14px;color:var(--text-mid);margin-top:8px;line-height:1.6;">Você é o <strong style="color:var(--green)">multiplicador direto</strong> do crescimento. Se o seu time produz mais, a empresa cresce mais. Não existe alavanca maior do que uma equipe bem liderada num modelo SLG.</p>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>4 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 5 – W = F × d -->
+<div class="slide">
+  <div class="mod-badge">INTRODUÇÃO · 14:10</div>
+  <div class="slide-title">Trabalho = Força × Deslocamento</div>
+  <div class="accent-bar"></div>
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="display:inline-block;background:rgba(0,200,150,.12);border:1px solid rgba(0,200,150,.35);border-radius:12px;padding:16px 40px;">
+      <div style="font-size:42px;font-weight:700;color:var(--text-hi);letter-spacing:4px;font-family:var(--font-head)">W = F × d</div>
+      <div style="font-size:13px;color:var(--text-lo);margin-top:4px;">Definição física de trabalho — energia efetivamente transferida</div>
+    </div>
+  </div>
+  <div class="two-col" style="flex:none;">
+    <div class="card">
+      <div class="card-label">NA FÍSICA</div>
+      <ul class="bullet-list" style="margin-top:8px;">
+        <li><strong style="color:#60AAFF">W</strong> — energia transferida ao sistema</li>
+        <li><strong style="color:#60AAFF">F</strong> — esforço aplicado</li>
+        <li><strong style="color:#60AAFF">d</strong> — movimento na direção certa</li>
+        <li>Se d = 0, W = 0 — independente da força</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label">NO COMERCIAL</div>
+      <ul class="bullet-list" style="margin-top:8px;">
+        <li><strong style="color:var(--orange)">Resultado</strong> — SALs, GMV, contratos</li>
+        <li><strong style="color:var(--orange)">Força</strong> — volume de prospecção, ligações/dia</li>
+        <li><strong style="color:var(--orange)">Deslocamento</strong> — direcionamento ao ICP correto</li>
+        <li>BDR ligando 100x/dia fora do ICP: d=0, W=0</li>
+      </ul>
+    </div>
+  </div>
+  <div class="warn" style="margin-top:16px;font-size:15px;">A pergunta do TL toda manhã: meu time está se movendo na <strong>direção certa</strong> — ou apenas se movendo?</div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>5 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 6 – O QUE SÃO KPIs -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 1 · 14:15</div>
+  <div class="slide-title">O que são KPIs?</div>
+  <div class="accent-bar"></div>
+  <p style="font-size:15px;color:var(--text-mid);margin-bottom:20px;">KPI = <strong style="color:#60AAFF">Key Performance Indicator</strong> — métricas que indicam se estamos no caminho certo para atingir nossos objetivos estratégicos.</p>
+  <div class="two-col">
+    <div class="card" style="height:fit-content;">
+      <div class="card-label">NA ONFLY, OS KPIs RESPONDEM</div>
+      <ul class="bullet-list" style="margin-top:8px;">
+        <li>Estou gerando shows suficientes para a meta?</li>
+        <li>Meu GMV prospectado está no nível certo?</li>
+        <li>Minha produtividade diária está no ritmo?</li>
+        <li>A conversão agendamento → SAL está saudável?</li>
+      </ul>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card accent-left">
+        <div class="card-label">Q1 2026 — SHOWS REALIZADOS (SALs)</div>
+        <div class="card-value">1.628</div>
+        <div class="card-note">Meta Q1: 3.635 · Atingimento: <span style="color:var(--red)">44,8%</span></div>
+      </div>
+      <div class="card accent-left">
+        <div class="card-label">Q1 2026 — GMV PROSPECTADO</div>
+        <div class="card-value" style="font-size:26px;">R$ 154,9M</div>
+        <div class="card-note">GMV total de todos os shows realizados</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 1 · FUNDAMENTOS DE KPIs</span><span>6 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 7 – TIPOS DE MÉTRICAS -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 1 · 14:25</div>
+  <div class="slide-title">Tipos de métricas</div>
+  <div class="accent-bar"></div>
+  <div class="three-col">
+    <div class="card">
+      <div class="card-label" style="color:var(--orange)">ATIVIDADE</div>
+      <p style="font-size:12px;color:var(--text-lo);margin-bottom:10px;">O que o time controla hoje</p>
+      <ul class="bullet-list">
+        <li>Ligações e mensagens</li>
+        <li>Agendamentos realizados</li>
+        <li>LinkedIn outreach</li>
+        <li>E-mails enviados</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:rgba(0,200,150,.3);">
+      <div class="card-label" style="color:var(--green)">RESULTADO</div>
+      <p style="font-size:12px;color:var(--text-lo);margin-bottom:10px;">Coração do Plano de Voo</p>
+      <ul class="bullet-list">
+        <li>Shows realizados (SALs)</li>
+        <li>GMV dos shows</li>
+        <li>Contratos assinados</li>
+        <li>Taxa de atingimento</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label" style="color:#60AAFF">QUALIDADE</div>
+      <p style="font-size:12px;color:var(--text-lo);margin-bottom:10px;">Eficiência do processo</p>
+      <ul class="bullet-list">
+        <li>Produtividade/dia</li>
+        <li>GMV médio por show</li>
+        <li>Conversão agend.→show</li>
+        <li>Ciclo médio de venda</li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight" style="margin-top:16px;font-size:15px;">Atividade suporta, mas não substitui resultado. GMV alto com volume baixo é sinal de qualidade — mas não de escala.</div>
+  <div class="slide-footer"><span>MÓDULO 1 · FUNDAMENTOS DE KPIs</span><span>7 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 8 – LEADING vs LAGGING -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 1 · 14:40</div>
+  <div class="slide-title">Leading vs Lagging indicators</div>
+  <div class="accent-bar"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-label" style="color:var(--orange)">LEADING — ANTECEDENTES</div>
+      <p style="font-size:13px;color:var(--text-lo);margin:8px 0;">Atividades que o time controla <em>hoje</em> e que vão gerar resultado amanhã.</p>
+      <ul class="bullet-list">
+        <li>Ligações/dia por BDR</li>
+        <li>Mensagens enviadas</li>
+        <li>Agendamentos marcados</li>
+        <li>LinkedIn outreach</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label" style="color:#60AAFF">LAGGING — CONSEQUENTES</div>
+      <p style="font-size:13px;color:var(--text-lo);margin:8px 0;">Resultados que já aconteceram e refletem atividades <em>passadas</em>.</p>
+      <ul class="bullet-list">
+        <li>SALs realizados no mês</li>
+        <li>GMV prospectado</li>
+        <li>Contratos assinados</li>
+        <li>% de atingimento da meta</li>
+      </ul>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin:16px 0;">
+    <div style="padding:10px 18px;background:rgba(255,122,47,.12);border-radius:8px;font-size:13px;color:var(--orange);text-align:center;">Atividade<br><span style="font-size:10px;color:var(--text-lo)">leading</span></div>
+    <div style="flex:1;height:2px;background:var(--navy-line);position:relative;"></div>
+    <div style="font-size:20px;color:var(--navy-line)">→</div>
+    <div style="padding:10px 18px;background:rgba(90,132,168,.12);border-radius:8px;font-size:13px;color:var(--text-lo);text-align:center;">defasagem<br><span style="font-size:10px;color:var(--text-lo)">tempo</span></div>
+    <div style="flex:1;height:2px;background:var(--navy-line);"></div>
+    <div style="font-size:20px;color:var(--navy-line)">→</div>
+    <div style="padding:10px 18px;background:rgba(33,150,243,.12);border-radius:8px;font-size:13px;color:#60AAFF;text-align:center;">Resultado<br><span style="font-size:10px;color:var(--text-lo)">lagging</span></div>
+  </div>
+  <div class="insight" style="font-size:15px;">Se o MTD está baixo no dia 15, você não muda o lagging hoje. Só muda o leading — <strong style="color:var(--text-hi)">volume de agendamentos dos próximos dias.</strong></div>
+  <div class="slide-footer"><span>MÓDULO 1 · FUNDAMENTOS DE KPIs</span><span>8 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 9 – MÓDULO 2 ABERTURA -->
+<div class="slide">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+    <div style="font-size:12px;color:var(--text-lo);letter-spacing:.15em;margin-bottom:8px;font-family:var(--font-head)">MÓDULO 2 · 15:00</div>
+    <div class="cover-title" style="font-size:clamp(36px,4.5vw,54px);">Dashboard<br><span>Plano de Voo</span></div>
+    <div class="accent-bar" style="margin:16px auto;"></div>
+    <p style="font-size:16px;color:var(--text-mid);max-width:460px;">Estrutura do painel, navegação e como extrair decisões dos dados em tempo real.</p>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;">
+      <span class="tag tag-blue">Q1 2026</span>
+      <span class="tag tag-gray">3 BUs</span>
+      <span class="tag tag-orange">194 BDRs</span>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>9 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 10 – PAINEL Q1 -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 2 · 15:05</div>
+  <div class="slide-title">Painel de KPIs · Q1 2026</div>
+  <div class="slide-sub">Visão consolidada — Janeiro a Março 2026 · Time completo</div>
+  <div class="metric-grid">
+    <div class="card accent-left"><div class="card-label">SHOWS REALIZADOS (SALs)</div><div class="card-value red-val" style="color:var(--red)">1.628</div><div class="card-note">Meta Q1: 3.635 · Ating.: 44,8%</div></div>
+    <div class="card accent-left"><div class="card-label">GMV PROSPECTADO Q1</div><div class="card-value" style="font-size:26px;">R$ 154,9M</div><div class="card-note">GMV de todos os shows realizados</div></div>
+    <div class="card accent-left"><div class="card-label">CONTRATOS ASSINADOS Q1</div><div class="card-value">62</div><div class="card-note">GMV contratos: R$ 5,41M</div></div>
+  </div>
+  <div class="metric-grid">
+    <div class="card"><div class="card-label">AGENDAMENTOS REALIZADOS</div><div class="card-value" style="font-size:26px;">2.253</div><div class="card-note">Total de reuniões agendadas no Q1</div></div>
+    <div class="card"><div class="card-label">BDRs ATIVOS NO Q1</div><div class="card-value">194</div><div class="card-note">21 equipes · 3 BUs</div></div>
+    <div class="card"><div class="card-label">ATINGIMENTO Q1 2026</div><div class="card-value" style="color:var(--red)">44,8%</div><div class="card-note" style="color:var(--red)">vs 60,5% em Q1 2025</div></div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 2 · DASHBOARD PLANO DE VOO</span><span>10 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 11 – RESULTADO POR BU -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 2 · 15:15</div>
+  <div class="slide-title">Resultado por BU · Q1 2026</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;">
+    <div class="bu-row">
+      <span class="bu-name">Castelo</span>
+      <div class="bu-bar-wrap"><div class="bu-bar" style="width:59.5%;background:#2196F3;"></div></div>
+      <span class="bu-pct" style="color:#60AAFF">59,5%</span>
+      <span class="bu-info">SALs: 909 · 80 BDRs · GMV R$ 94,2M</span>
+    </div>
+    <div class="bu-row">
+      <span class="bu-name">California</span>
+      <div class="bu-bar-wrap"><div class="bu-bar" style="width:33.5%;background:var(--orange);"></div></div>
+      <span class="bu-pct" style="color:var(--orange)">33,5%</span>
+      <span class="bu-info">SALs: 608 · 91 BDRs · GMV R$ 53,1M</span>
+    </div>
+    <div class="bu-row">
+      <span class="bu-name">Campo Belo</span>
+      <div class="bu-bar-wrap"><div class="bu-bar" style="width:37.8%;background:var(--green);"></div></div>
+      <span class="bu-pct" style="color:var(--green)">37,8%</span>
+      <span class="bu-info">SALs: 111 · 23 BDRs · GMV R$ 7,6M</span>
+    </div>
+  </div>
+  <div class="insight" style="font-size:15px;">California tem o maior headcount (91 BDRs) mas o menor atingimento. O dado aponta para um problema de <strong style="color:var(--text-hi)">direcionamento, não de volume.</strong></div>
+  <div class="slide-footer"><span>MÓDULO 2 · DASHBOARD PLANO DE VOO</span><span>11 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 12 – EVOLUÇÃO MENSAL -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 2 · 15:30</div>
+  <div class="slide-title">Evolução Mensal · Q1 2026</div>
+  <div class="accent-bar"></div>
+  <div class="insight" style="margin-bottom:20px;font-size:15px;">Performance consolidada das 3 BUs ao longo do Q1 · Comparativo Q1 2026 (44,8%) vs Q1 2025 (60,5%)</div>
+  <div class="three-col">
+    <div class="card" style="text-align:center;">
+      <div class="card-label">JANEIRO 2026</div>
+      <div class="card-value" style="margin:10px 0;">496</div>
+      <div class="card-note">SALs realizados</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--navy-line);">
+        <div style="font-size:12px;color:var(--text-lo)">Castelo · California · Campo Belo</div>
+        <div style="font-size:13px;color:#60AAFF;margin-top:4px;">Início de ciclo</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-label">FEVEREIRO 2026</div>
+      <div class="card-value" style="margin:10px 0;">574</div>
+      <div class="card-note">SALs realizados</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--navy-line);">
+        <div style="font-size:12px;color:var(--text-lo)">Crescimento mensal</div>
+        <div style="font-size:13px;color:var(--green);margin-top:4px;">+15,7% vs Jan</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-label">MARÇO 2026</div>
+      <div class="card-value" style="margin:10px 0;">558</div>
+      <div class="card-note">SALs realizados</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--navy-line);">
+        <div style="font-size:12px;color:var(--text-lo)">Encerramento Q1</div>
+        <div style="font-size:13px;color:var(--orange);margin-top:4px;">−2,8% vs Fev</div>
+      </div>
+    </div>
+  </div>
+  <div class="warn" style="margin-top:16px;font-size:14px;">Identifique padrões sazonais e tendências para o Q2. Quais alavancas mudariam esse cenário?</div>
+  <div class="slide-footer"><span>MÓDULO 2 · DASHBOARD PLANO DE VOO</span><span>12 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 13 – MÓDULO 3 ABERTURA -->
+<div class="slide">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+    <div style="font-size:12px;color:var(--text-lo);letter-spacing:.15em;margin-bottom:8px;font-family:var(--font-head)">MÓDULO 3 · 15:45</div>
+    <div class="cover-title" style="font-size:clamp(36px,4.5vw,54px);">Funil, GMV e<br><span>Método Científico</span></div>
+    <div class="accent-bar" style="margin:16px auto;"></div>
+    <p style="font-size:16px;color:var(--text-mid);max-width:480px;">Leitura do funil completo, análise de GMV por BU e como aplicar o método científico para diagnóstico e decisão.</p>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>13 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 14 – FUNIL Q1 -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 3 · 15:50</div>
+  <div class="slide-title">Funil Completo · Q1 2026</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;">
+    <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--navy-card);border:1px solid var(--navy-line);border-radius:10px;">
+      <div style="font-size:28px;font-weight:700;color:#60AAFF;min-width:80px;font-family:var(--font-head)">2.253</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text-hi)">Agendamentos realizados</div><div style="font-size:12px;color:var(--text-lo)">Total de reuniões agendadas no Q1</div></div>
+      <div style="font-size:22px;color:var(--text-lo)">↓</div>
+      <div style="font-size:13px;color:var(--text-lo)">Taxa: 72,3%</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--navy-card);border:1px solid rgba(0,200,150,.3);border-radius:10px;">
+      <div style="font-size:28px;font-weight:700;color:var(--green);min-width:80px;font-family:var(--font-head)">1.628</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text-hi)">SALs realizados (shows)</div><div style="font-size:12px;color:var(--text-lo)">Reuniões efetivamente realizadas</div></div>
+      <div style="font-size:22px;color:var(--text-lo)">↓</div>
+      <div style="font-size:13px;color:var(--text-lo)">Taxa: 3,8%</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.3);border-radius:10px;">
+      <div style="font-size:28px;font-weight:700;color:var(--green);min-width:80px;font-family:var(--font-head)">62</div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text-hi)">Contratos assinados</div><div style="font-size:12px;color:var(--text-lo)">GMV contratado: R$ 5,41M</div></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 3 · FUNIL E MÉTODO CIENTÍFICO</span><span>14 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 15 – GMV POR BU -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 3 · 16:00</div>
+  <div class="slide-title">GMV por BU · Q1 2026</div>
+  <div class="accent-bar"></div>
+  <div class="three-col">
+    <div class="card" style="text-align:center;padding:24px 16px;">
+      <div style="font-size:12px;color:var(--text-lo);margin-bottom:8px;">CASTELO</div>
+      <div style="font-size:28px;font-weight:700;color:#60AAFF;margin-bottom:6px;font-family:var(--font-head)">R$ 94,2M</div>
+      <div style="font-size:13px;color:var(--text-lo);margin:4px 0;">60,8% do total</div>
+      <div style="font-size:12px;color:var(--text-lo);">SALs: 909 · 80 BDRs</div>
+    </div>
+    <div class="card" style="text-align:center;padding:24px 16px;">
+      <div style="font-size:12px;color:var(--text-lo);margin-bottom:8px;">CALIFORNIA</div>
+      <div style="font-size:28px;font-weight:700;color:var(--orange);margin-bottom:6px;font-family:var(--font-head)">R$ 53,1M</div>
+      <div style="font-size:13px;color:var(--text-lo);margin:4px 0;">34,3% do total</div>
+      <div style="font-size:12px;color:var(--text-lo);">SALs: 608 · 91 BDRs</div>
+    </div>
+    <div class="card" style="text-align:center;padding:24px 16px;">
+      <div style="font-size:12px;color:var(--text-lo);margin-bottom:8px;">CAMPO BELO</div>
+      <div style="font-size:28px;font-weight:700;color:var(--green);margin-bottom:6px;font-family:var(--font-head)">R$ 7,6M</div>
+      <div style="font-size:13px;color:var(--text-lo);margin:4px 0;">4,9% do total</div>
+      <div style="font-size:12px;color:var(--text-lo);">SALs: 111 · 23 BDRs</div>
+    </div>
+  </div>
+  <div class="insight" style="margin-top:16px;font-size:15px;">Castelo concentra <strong style="color:var(--text-hi)">60,8% do GMV</strong> com apenas 41% dos BDRs. Campo Belo tem GMV médio por BDR competitivo: <strong style="color:var(--green)">R$ 330k/BDR.</strong></div>
+  <div class="slide-footer"><span>MÓDULO 3 · FUNIL E MÉTODO CIENTÍFICO</span><span>15 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 16 – MÉTODO CIENTÍFICO -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 3 · 16:10</div>
+  <div class="slide-title">Método Científico no Comercial</div>
+  <div class="slide-sub">Como o TL testa hipóteses com dados reais</div>
+  <div class="step-flow">
+    <div class="step"><div class="step-num">1</div><div class="step-label">Observação</div><div class="step-desc">Leitura do dado no Plano de Voo</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">2</div><div class="step-label">Hipótese</div><div class="step-desc">Por que isso está acontecendo?</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">3</div><div class="step-label">Experimento</div><div class="step-desc">1 variável por vez — semana de teste</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">4</div><div class="step-label">Resultado</div><div class="step-desc">Novo dado gerado após o teste</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">5</div><div class="step-label">Conclusão</div><div class="step-desc">Escalar ou descartar a mudança</div></div>
+  </div>
+  <div class="warn" style="font-size:15px;">Regra de ouro: <strong>nunca mude 2 variáveis ao mesmo tempo.</strong> Você não saberá o que funcionou.</div>
+  <div class="insight" style="font-size:15px;">Dado sem hipótese é ruído. Hipótese sem experimento é achismo. O método une os dois e transforma leitura de painel em <strong style="color:var(--text-hi)">decisão de gestão.</strong></div>
+  <div class="slide-footer"><span>MÓDULO 3 · FUNIL E MÉTODO CIENTÍFICO</span><span>16 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 17 – EXEMPLO REAL -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 3 · 16:20</div>
+  <div class="slide-title">Exemplo real: aplicando o método</div>
+  <div class="accent-bar"></div>
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="padding:12px 16px;background:var(--navy-card);border-left:4px solid var(--text-lo);border-radius:0 10px 10px 0;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-lo);margin-bottom:5px;">OBSERVAÇÃO</div>
+        <div style="font-size:14px;color:var(--text-mid);">BDR com 9 agendamentos em Jan/2026 mas apenas 1 SAL — conversão de <strong style="color:var(--red)">11%</strong></div>
+      </div>
+      <div style="padding:12px 16px;background:var(--navy-card);border-left:4px solid var(--orange);border-radius:0 10px 10px 0;">
+        <div style="font-size:11px;font-weight:600;color:var(--orange);margin-bottom:5px;">HIPÓTESE</div>
+        <div style="font-size:14px;color:var(--text-mid);">Perfil fora do ICP: GMV médio prospectado abaixo de R$ 10k (muito pequeno)</div>
+      </div>
+      <div style="padding:12px 16px;background:var(--navy-card);border-left:4px solid #60AAFF;border-radius:0 10px 10px 0;">
+        <div style="font-size:11px;font-weight:600;color:#60AAFF;margin-bottom:5px;">EXPERIMENTO</div>
+        <div style="font-size:14px;color:var(--text-mid);">Semana seguinte: prospectar só empresas com GMV estimado &gt; R$ 30k</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="padding:12px 16px;background:var(--navy-card);border-left:4px solid var(--green);border-radius:0 10px 10px 0;">
+        <div style="font-size:11px;font-weight:600;color:var(--green);margin-bottom:5px;">RESULTADO</div>
+        <div style="font-size:14px;color:var(--text-mid);">Taxa de conversão agendamento→SAL sobe de <strong style="color:var(--red)">11%</strong> para <strong style="color:var(--green)">~35%</strong> na semana de teste</div>
+      </div>
+      <div style="padding:12px 16px;background:var(--navy-card);border-left:4px solid var(--text-hi);border-radius:0 10px 10px 0;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-hi);margin-bottom:5px;">CONCLUSÃO</div>
+        <div style="font-size:14px;color:var(--text-mid);">Ajustar filtro de segmentação para toda a equipe e monitorar no MTD semanal</div>
+      </div>
+      <div class="insight" style="font-size:14px;">O TL não mudou o volume — mudou o <strong style="color:var(--green)">deslocamento</strong>. <strong style="color:var(--text-hi)">W = F × d na prática.</strong></div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 3 · FUNIL E MÉTODO CIENTÍFICO</span><span>17 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 18 – MÓDULO 4 ABERTURA -->
+<div class="slide">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+    <div style="font-size:12px;color:var(--text-lo);letter-spacing:.15em;margin-bottom:8px;font-family:var(--font-head)">MÓDULO 4 · 16:30</div>
+    <div class="cover-title" style="font-size:clamp(36px,4.5vw,54px);">MTD e Gestão<br><span>de Metas</span></div>
+    <div class="accent-bar" style="margin:16px auto;"></div>
+    <p style="font-size:16px;color:var(--text-mid);max-width:460px;">Leitura do painel de mês corrente, projeções, forecast e ritmo diário para bater a goal.</p>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;">
+      <span class="tag tag-orange">Abril 2026</span>
+      <span class="tag tag-blue">Goal: 1.197</span>
+      <span class="tag tag-gray">150 BDRs</span>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>18 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 19 – MTD RESULTADO -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 4 · 16:35</div>
+  <div class="slide-title">MTD · Resultado Abril 2026</div>
+  <div class="slide-sub">Dados de 15/04/2026 · Acompanhamento diário do time</div>
+  <div class="metric-grid">
+    <div class="card accent-left"><div class="card-label">GOAL DO MÊS (ABRIL)</div><div class="card-value">1.197</div><div class="card-note">shows esperados no mês</div></div>
+    <div class="card accent-left orange-val"><div class="card-label">MTD ACUMULADO</div><div class="card-value">599</div><div class="card-note">26,1% da goal atingida</div></div>
+    <div class="card accent-left"><div class="card-label">ACT HOJE (SHOWS/DIA)</div><div class="card-value">156</div><div class="card-note">Prod.: 1,04 · Goal: 5,5</div></div>
+  </div>
+  <div class="metric-grid">
+    <div class="card"><div class="card-label">SHOWS/DIA NECESSÁRIOS</div><div class="card-value">105</div><div class="card-note">21/coord · 8/TL · 1/BDR</div></div>
+    <div class="card"><div class="card-label">DIAS ÚTEIS RESTANTES</div><div class="card-value">10</div><div class="card-note">Faltam 443 shows para a goal</div></div>
+    <div class="card red-val"><div class="card-label">GAP DE PRODUTIVIDADE</div><div class="card-value">−4,46</div><div class="card-note">shows/dia abaixo do necessário</div></div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 4 · MTD E GESTÃO DE METAS</span><span>19 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 20 – MTD FORECAST -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 4 · 16:45</div>
+  <div class="slide-title">MTD · Potencial e Forecast de Abril</div>
+  <div class="slide-sub">Projeção para o fim do mês com base na produtividade atual e pipeline</div>
+  <div class="metric-grid">
+    <div class="card accent-left"><div class="card-label">TOTAL BDRs ATIVOS</div><div class="card-value">150</div><div class="card-note">5 Coords · 14 TLs</div></div>
+    <div class="card accent-left"><div class="card-label">SHOWS POTENCIAL (PIPELINE)</div><div class="card-value">1.500</div><div class="card-note">estimativa com base no pipeline ativo</div></div>
+    <div class="card accent-left"><div class="card-label">FORECAST (DIAS RESTANTES)</div><div class="card-value">171</div><div class="card-note">sem no-show: 137</div></div>
+  </div>
+  <div class="metric-grid">
+    <div class="card"><div class="card-label">POTENCIAL REAL</div><div class="card-value">309</div><div class="card-note">forecast (−no-show) + ACT acumulado</div></div>
+    <div class="card green-val"><div class="card-label">SHOWS TOTAL (ACT+POT.)</div><div class="card-value">1.672</div><div class="card-note">ST &gt; Goal: <strong>1,40×</strong></div></div>
+    <div class="card red-val"><div class="card-label">FALTANTE PARA GOAL</div><div class="card-value">443</div><div class="card-note">44,3 shows/dia necessários</div></div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 4 · MTD E GESTÃO DE METAS</span><span>20 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 21 – MTD POR BU -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 4 · 16:55</div>
+  <div class="slide-title">MTD por BU · Abril 2026</div>
+  <div class="accent-bar"></div>
+  <div class="three-col">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:11px;color:var(--text-lo);margin-bottom:8px;">CASTELO</div>
+      <div style="font-size:30px;font-weight:700;color:#60AAFF;font-family:var(--font-head);margin-bottom:8px;">47,5%</div>
+      <div style="height:5px;background:var(--navy);border-radius:3px;margin:10px 0;overflow:hidden;"><div style="height:100%;background:#60AAFF;width:47.5%"></div></div>
+      <div style="font-size:12px;color:var(--text-lo)">Closers: <strong style="color:var(--text-mid)">58</strong></div>
+      <div style="font-size:12px;color:var(--text-lo);margin-top:4px">ACT/mês: <strong style="color:var(--text-mid)">74,2</strong> · ACT/dia: <strong style="color:var(--text-mid)">27,2</strong></div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:11px;color:var(--text-lo);margin-bottom:8px;">CALIFORNIA</div>
+      <div style="font-size:30px;font-weight:700;color:var(--orange);font-family:var(--font-head);margin-bottom:8px;">39,3%</div>
+      <div style="height:5px;background:var(--navy);border-radius:3px;margin:10px 0;overflow:hidden;"><div style="height:100%;background:var(--orange);width:39.3%"></div></div>
+      <div style="font-size:12px;color:var(--text-lo)">Closers: <strong style="color:var(--text-mid)">48</strong></div>
+      <div style="font-size:12px;color:var(--text-lo);margin-top:4px">ACT/mês: <strong style="color:var(--text-mid)">61,4</strong> · ACT/dia: <strong style="color:var(--text-mid)">22,5</strong></div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:11px;color:var(--text-lo);margin-bottom:8px;">CAMPO BELO</div>
+      <div style="font-size:30px;font-weight:700;color:var(--green);font-family:var(--font-head);margin-bottom:8px;">13,1%</div>
+      <div style="height:5px;background:var(--navy);border-radius:3px;margin:10px 0;overflow:hidden;"><div style="height:100%;background:var(--green);width:13.1%"></div></div>
+      <div style="font-size:12px;color:var(--text-lo)">Closers: <strong style="color:var(--text-mid)">16</strong></div>
+      <div style="font-size:12px;color:var(--text-lo);margin-top:4px">ACT/mês: <strong style="color:var(--text-mid)">20,5</strong> · ACT/dia: <strong style="color:var(--text-mid)">7,5</strong></div>
+    </div>
+  </div>
+  <div class="insight" style="margin-top:16px;font-size:15px;">California tem mais Closers (48) em proporção — mas entrega menos shows por Closer. <strong style="color:var(--text-hi)">Atenção ao ritmo individual nessa BU.</strong></div>
+  <div class="slide-footer"><span>MÓDULO 4 · MTD E GESTÃO DE METAS</span><span>21 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 22 – META DIÁRIA -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 4 · 17:05</div>
+  <div class="slide-title">Como ler a meta diária no MTD</div>
+  <div class="accent-bar"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-label">DECOMPOSIÇÃO DA META</div>
+      <div style="margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--navy-line);font-size:14px;"><span style="color:var(--text-lo)">Goal total do mês</span><span style="color:var(--text-hi);font-weight:600;">1.197 shows</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--navy-line);font-size:14px;"><span style="color:var(--text-lo)">Dias úteis no mês</span><span style="color:var(--text-hi);font-weight:600;">20 dias</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--navy-line);font-size:14px;"><span style="color:var(--text-lo)">TWD (dias restantes)</span><span style="color:var(--text-hi);font-weight:600;">10 dias</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--navy-line);font-size:14px;"><span style="color:var(--text-lo)">Shows/dia (time)</span><span style="color:var(--text-hi);font-weight:600;">105 shows/dia</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--navy-line);font-size:14px;"><span style="color:var(--text-lo)">Shows/dia por Coord.</span><span style="color:var(--text-hi);font-weight:600;">21 shows/coord.</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--navy-line);font-size:14px;"><span style="color:var(--text-lo)">Shows/dia por TL</span><span style="color:var(--text-hi);font-weight:600;">8 shows/TL</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;"><span style="color:var(--text-lo)">Shows/dia por BDR</span><span style="color:var(--green);font-weight:600;">1 show/BDR</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;justify-content:center;">
+      <div class="insight" style="font-size:14px;">O MTD mostra, a cada dia, se o time está no ritmo para bater a goal do mês.</div>
+      <div style="padding:14px 16px;background:rgba(242,87,87,.08);border:1px solid rgba(242,87,87,.3);border-radius:10px;">
+        <div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:6px;">DIAGNÓSTICO HOJE — 15/04</div>
+        <div style="font-size:14px;color:var(--text-mid);line-height:1.8;">ACT = 156 shows/dia<br>MTD = 599 acumulado<br>Prod. = 1,04 · Goal = 5,5<br><strong style="color:var(--red)">GAP: −4,46 shows/dia</strong></div>
+      </div>
+      <div class="insight" style="font-size:13px;">Ritmo atual projeta apenas <strong style="color:var(--red)">312 shows</strong> no mês — 26% da goal de 1.197.</div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 4 · MTD E GESTÃO DE METAS</span><span>22 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 23 – MÓDULO 5 ABERTURA -->
+<div class="slide">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+    <div style="font-size:12px;color:var(--text-lo);letter-spacing:.15em;margin-bottom:8px;font-family:var(--font-head)">MÓDULO 5 · 17:15</div>
+    <div class="cover-title" style="font-size:clamp(36px,4.5vw,54px);">Diagnóstico<br><span>com Dados</span></div>
+    <div class="accent-bar" style="margin:16px auto;"></div>
+    <p style="font-size:16px;color:var(--text-mid);max-width:460px;">Top performers, sinais de alerta, a rotina diária do TL e o exercício prático com dados reais de Abril 2026.</p>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>23 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 24 – TOP 10 BDRs -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 5 · 17:20</div>
+  <div class="slide-title">Top 10 BDRs por SALs · Q1 2026</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1;overflow:hidden;">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Colaborador</th><th>BU</th><th>SALs</th><th>GMV Prospectado</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--text-lo)">1</td><td class="hi">Geovana Fernandes</td><td><span class="tag tag-green">Campo Belo</span></td><td class="blue">41</td><td class="green">R$ 3,57M</td></tr>
+        <tr><td style="color:var(--text-lo)">2</td><td class="hi">Ohana Alves de Sousa</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">38</td><td class="green">R$ 1,30M</td></tr>
+        <tr><td style="color:var(--text-lo)">3</td><td class="hi">Larissa Fabiane</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">36</td><td class="green">R$ 2,36M</td></tr>
+        <tr><td style="color:var(--text-lo)">4</td><td class="hi">Matheus Felipe Barros</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">35</td><td class="green">R$ 4,83M</td></tr>
+        <tr><td style="color:var(--text-lo)">5</td><td class="hi">João Matos</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">32</td><td class="green">R$ 3,23M</td></tr>
+        <tr><td style="color:var(--text-lo)">6</td><td class="hi">Vitor Amorim</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">32</td><td class="green">R$ 3,22M</td></tr>
+        <tr><td style="color:var(--text-lo)">7</td><td class="hi">Isabella Monteiro</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">31</td><td class="green">R$ 8,25M</td></tr>
+        <tr><td style="color:var(--text-lo)">8</td><td class="hi">Vinicius Souza Vidal</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">29</td><td class="green">R$ 12,08M</td></tr>
+        <tr><td style="color:var(--text-lo)">9</td><td class="hi">Daniela Bettini</td><td><span class="tag tag-orange">California</span></td><td class="blue">29</td><td class="green">R$ 2,73M</td></tr>
+        <tr><td style="color:var(--text-lo)">10</td><td class="hi">Arthur Beltrão Silva</td><td><span class="tag tag-blue">Castelo</span></td><td class="blue">28</td><td class="green">R$ 2,03M</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 5 · DIAGNÓSTICO COM DADOS</span><span>24 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 25 – TOP EQUIPES -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 5 · 17:25</div>
+  <div class="slide-title">Top equipes por SALs · Q1 2026</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Thiago</span><span class="tag tag-blue" style="margin-right:4px;">Castelo</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:76%;background:#60AAFF;"></div></div><span class="bu-pct" style="color:#60AAFF;font-size:13px;">206</span><span class="bu-info">76% · R$ 40,7M</span></div>
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Ludmila</span><span class="tag tag-blue" style="margin-right:4px;">Castelo</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:67%;background:#60AAFF;"></div></div><span class="bu-pct" style="color:#60AAFF;font-size:13px;">183</span><span class="bu-info">67% · R$ 16,2M</span></div>
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Emily</span><span class="tag tag-blue" style="margin-right:4px;">Castelo</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:59%;background:#60AAFF;"></div></div><span class="bu-pct" style="color:#60AAFF;font-size:13px;">159</span><span class="bu-info">59% · R$ 13,4M</span></div>
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Igor Pena</span><span class="tag tag-blue" style="margin-right:4px;">Castelo</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:66%;background:#60AAFF;"></div></div><span class="bu-pct" style="color:#60AAFF;font-size:13px;">118</span><span class="bu-info">66% · R$ 6,4M</span></div>
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Theo</span><span class="tag tag-orange" style="margin-right:4px;">California</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:41%;background:var(--orange);"></div></div><span class="bu-pct" style="color:var(--orange);font-size:13px;">111</span><span class="bu-info">41% · R$ 8,8M</span></div>
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Lucas</span><span class="tag tag-green" style="margin-right:4px;">Campo Belo</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:38%;background:var(--green);"></div></div><span class="bu-pct" style="color:var(--green);font-size:13px;">111</span><span class="bu-info">38% · R$ 7,6M</span></div>
+    <div class="bu-row"><span class="bu-name" style="font-size:13px;">BDR - Maria Eduarda</span><span class="tag tag-blue" style="margin-right:4px;">Castelo</span><div class="bu-bar-wrap"><div class="bu-bar" style="width:67%;background:#60AAFF;"></div></div><span class="bu-pct" style="color:#60AAFF;font-size:13px;">104</span><span class="bu-info">67% · R$ 11,0M</span></div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 5 · DIAGNÓSTICO COM DADOS</span><span>25 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 26 – SINAIS DE ALERTA -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 5 · 17:30</div>
+  <div class="slide-title">Sinais de alerta no Plano de Voo</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div class="alert-row"><div class="alert-dot" style="background:var(--red)"></div><div><div class="alert-title">Atingimento &lt; 40% no fim do mês</div><div class="alert-action">→ Sprint imediato + revisão de pipeline ativo</div></div></div>
+    <div class="alert-row"><div class="alert-dot" style="background:var(--red)"></div><div><div class="alert-title">GAP de produtividade negativo no MTD</div><div class="alert-action">→ Analisar bloqueios: agenda, qualificação, canal</div></div></div>
+    <div class="alert-row"><div class="alert-dot" style="background:var(--orange)"></div><div><div class="alert-title">MTD &lt; 25% com 50% do mês passado</div><div class="alert-action">→ Aumentar cadência de prospecção ativa</div></div></div>
+    <div class="alert-row"><div class="alert-dot" style="background:var(--orange)"></div><div><div class="alert-title">GMV médio caindo consecutivamente</div><div class="alert-action">→ Focar em contas Mid Market (R$ 20k–199k GMV)</div></div></div>
+    <div class="alert-row"><div class="alert-dot" style="background:var(--green)"></div><div><div class="alert-title">Produtividade &gt; goal do dia</div><div class="alert-action">→ Manter ritmo — replicar estratégia da semana</div></div></div>
+    <div class="alert-row" style="border:none;"><div class="alert-dot" style="background:var(--green)"></div><div><div class="alert-title">Show com empresa 200k+ GMV</div><div class="alert-action">→ Acionar protocolo de conta estratégica</div></div></div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 5 · DIAGNÓSTICO COM DADOS</span><span>26 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 27 – 5 INDICADORES DIÁRIOS -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 5 · 17:35</div>
+  <div class="slide-title">Os 5 indicadores que o TL abre todo dia</div>
+  <div class="accent-bar"></div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+    <div class="checklist-item"><div class="check-num">1</div><div><div class="check-title">MTD acumulado vs ritmo esperado</div><div class="check-desc">Estou no pace? Ritmo = ACT ÷ dias trabalhados × dias totais do mês</div></div></div>
+    <div class="checklist-item"><div class="check-num">2</div><div><div class="check-title">Produtividade do dia anterior por BDR</div><div class="check-desc">Quem está abaixo de 1 show/dia? Precisa de 1:1 imediato?</div></div></div>
+    <div class="checklist-item"><div class="check-num">3</div><div><div class="check-title">GAP de produtividade do time</div><div class="check-desc">Quanto estou devendo para a goal? Qual é o sprint necessário?</div></div></div>
+    <div class="checklist-item"><div class="check-num">4</div><div><div class="check-title">Pipeline de shows para os próximos 3 dias</div><div class="check-desc">Tem volume agendado para recuperar o atraso?</div></div></div>
+    <div class="checklist-item"><div class="check-num">5</div><div><div class="check-title">GMV médio dos últimos shows</div><div class="check-desc">Estou prospectando o perfil certo de empresa?</div></div></div>
+  </div>
+  <div class="warn" style="margin-top:12px;font-size:15px;">Esses 5 dados cabem em 10 minutos. Se você não os lê antes das 9h30, <strong>você está gerindo no escuro.</strong></div>
+  <div class="slide-footer"><span>MÓDULO 5 · DIAGNÓSTICO COM DADOS</span><span>27 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 28 – EXERCÍCIO PRÁTICO -->
+<div class="slide">
+  <div class="mod-badge">MÓDULO 5 · 17:40</div>
+  <div class="slide-title">Exercício prático · Análise real</div>
+  <div class="slide-sub">Com base nos dados reais de Abril 2026 — responda em grupo (15 min)</div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <div class="exercise-q"><div class="q-num">1</div><div class="q-text">O time tem 156 shows hoje (15/04). O goal é 5,5/dia. O que o GAP de −4,46 significa na prática?</div></div>
+    <div class="exercise-q"><div class="q-num">2</div><div class="q-text">Goal Abril: 1.197 shows. Com 10 dias restantes e 443 shows faltando, qual é o ritmo necessário?</div></div>
+    <div class="exercise-q"><div class="q-num">3</div><div class="q-text">Castelo tem 58 closers, California 48 e Campo Belo 16. O que isso revela sobre a estratégia de cada BU?</div></div>
+    <div class="exercise-q"><div class="q-num">4</div><div class="q-text">Forecast total: 1.672 shows (1,40× a goal). O time vai bater? Que riscos podem mudar esse cenário?</div></div>
+    <div class="exercise-q"><div class="q-num">5</div><div class="q-text">Q1 2026 (44,8%) vs Q1 2025 (60,5%): quais 3 alavancas você priorizaria para Abril?</div></div>
+  </div>
+  <div class="slide-footer"><span>MÓDULO 5 · DIAGNÓSTICO COM DADOS</span><span>28 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 29 – PLANO DE AÇÃO -->
+<div class="slide">
+  <div class="mod-badge">ENCERRAMENTO · 17:50</div>
+  <div class="slide-title">Meu plano de ação</div>
+  <div class="slide-sub">O que vou mudar a partir de amanhã?</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;">
+    <div class="plan-item"><div class="plan-check"></div><div class="plan-text">1 indicador que vou monitorar diariamente no Plano de Voo</div></div>
+    <div class="plan-item"><div class="plan-check"></div><div class="plan-text">Como vou atingir minha meta de shows/dia nos próximos 10 dias</div></div>
+    <div class="plan-item"><div class="plan-check"></div><div class="plan-text">1 comportamento que vou mudar na prospecção ou qualificação do meu time</div></div>
+    <div class="plan-item"><div class="plan-check"></div><div class="plan-text">Como vou comunicar meu pipeline na próxima daily</div></div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>29 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 30 – RESUMO -->
+<div class="slide">
+  <div class="mod-badge">ENCERRAMENTO · 17:55</div>
+  <div class="slide-title">Resumo do que você aprendeu hoje</div>
+  <div class="accent-bar"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;">
+    <div class="summary-card"><div class="sum-icon">W=Fd</div><div><div class="sum-title">SLG + Física</div><div class="sum-desc">Resultado = Esforço × Direcionamento. Volume sem ICP = trabalho zero.</div></div></div>
+    <div class="summary-card"><div class="sum-icon">KPI</div><div><div class="sum-title">Fundamentos de KPIs</div><div class="sum-desc">SALs, GMV, atingimento. Leading indicators são o que você controla hoje.</div></div></div>
+    <div class="summary-card"><div class="sum-icon">44,8%</div><div><div class="sum-title">Dashboard Q1 2026</div><div class="sum-desc">1.628 SALs, R$ 154,9M GMV, 62 contratos — estrutura do painel lida.</div></div></div>
+    <div class="summary-card"><div class="sum-icon">→62</div><div><div class="sum-title">Funil completo</div><div class="sum-desc">2.253 agend. → 1.628 SALs → 62 contratos (R$ 5,41M GMV).</div></div></div>
+    <div class="summary-card"><div class="sum-icon">MTD</div><div><div class="sum-title">Gestão de Metas</div><div class="sum-desc">Goal 1.197, acumulado 599, faltam 443 shows em 10 dias. GAP: −4,46.</div></div></div>
+    <div class="summary-card"><div class="sum-icon">1-2-3</div><div><div class="sum-title">Método Científico</div><div class="sum-desc">Observar → hipotetizar → experimentar → concluir. Uma variável por vez.</div></div></div>
+  </div>
+  <div class="insight" style="margin-top:12px;font-size:15px;">Próximo passo: abrir o Plano de Voo amanhã <strong style="color:var(--green)">antes das 9h30</strong> e aplicar o plano de ação.</div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>30 / 31</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SLIDE 31 – FIM -->
+<div class="slide">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+    <div style="font-size:48px;margin-bottom:16px;">★</div>
+    <div class="cover-title" style="font-size:clamp(36px,4.5vw,52px);">Parabéns!</div>
+    <div class="accent-bar" style="margin:14px auto;"></div>
+    <p style="font-size:16px;color:var(--text-mid);max-width:440px;margin-bottom:24px;">Você completou a formação Plano de Voo. Agora é hora de aplicar — começando <strong style="color:var(--green)">amanhã às 9h30.</strong></p>
+    <div style="background:var(--navy-card);border:1px solid var(--navy-line);border-radius:12px;padding:18px 24px;max-width:460px;width:100%;text-align:left;">
+      <div style="font-size:11px;color:var(--text-lo);font-weight:600;letter-spacing:.1em;margin-bottom:10px;font-family:var(--font-head)">SUAS REFERÊNCIAS DIÁRIAS</div>
+      <div style="font-size:14px;color:var(--text-mid);line-height:2;">→ MTD: goal 1.197 · acumulado 599 · GAP −4,46<br>→ 5 indicadores antes das 9h30<br>→ W = F × d — volume na direção certa<br>→ Método científico: 1 variável por vez</div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>ONFLY · DEMAND GENERATION · 2026</span><span>31 / 31</span></div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ═══════════════════════════════════════ MODAL GLOSSÁRIO -->
+<div class="modal-overlay" id="modal-glossario">
+  <div class="modal-box">
+
+    <!-- CABEÇALHO -->
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-eyebrow">PLANO DE VOO · ONFLY 2026</div>
+        <div class="modal-title">Glossário de <span>Indicadores e KPIs</span></div>
+        <div class="modal-subtitle">Demand Generation · Referência para Team Leaders · 15 indicadores</div>
+      </div>
+      <button class="modal-close" onclick="toggleGlossario()" title="Fechar">✕</button>
+    </div>
+
+    <!-- LEGENDA -->
+    <div class="modal-legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>Resultado</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--orange)"></div>Leading (antecedente)</div>
+      <div class="leg"><div class="leg-dot" style="background:#60AAFF"></div>Lagging (consequente)</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--red)"></div>Qualidade</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--text-lo)"></div>Gestão de Metas</div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="modal-body">
+    <table class="gtable">
+      <colgroup><col/><col/><col/></colgroup>
+      <thead>
+        <tr>
+          <th>INDICADOR / KPI</th>
+          <th>DESCRIÇÃO</th>
+          <th>EXEMPLOS DE UTILIZAÇÃO</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- ── RESULTADO ── -->
+        <tr class="gcat"><td colspan="3">● INDICADORES DE RESULTADO</td></tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">SAL</span><span class="gfull">Sales Accepted Lead</span><span class="gtag gr">Resultado</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Reunião comercial <strong>efetivamente realizada</strong> com um prospect qualificado. É o principal indicador de produção do time de Demand Generation — cada SAL representa um show executado pelo BDR dentro dos critérios do ICP.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">No Q1 2026, o time realizou <strong>1.628 SALs</strong> contra uma meta de 3.635, atingindo <strong>44,8%</strong> da goal — abaixo dos 60,5% do Q1 2025, sinalizando necessidade de ajuste estratégico.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Castelo liderou com <strong>909 SALs</strong> (59,5% do total), enquanto California, com mais BDRs (91), gerou apenas 608 — indicando problema de <strong>direcionamento</strong>, não de volume.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">GMV</span><span class="gfull">Gross Merchandise Value</span><span class="gtag gr">Resultado</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Valor bruto total das viagens e serviços prospectados nos shows realizados. Mede o <strong>potencial de receita</strong> gerado — quanto maior o GMV médio por show, mais qualificado é o perfil prospectado.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">GMV prospectado no Q1 2026: <strong>R$ 154,9M</strong>. Castelo concentrou R$ 94,2M (60,8% do total) com apenas 41% dos BDRs — alta eficiência por colaborador.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Vinicius Souza Vidal gerou <strong>R$ 12,08M</strong> com 29 SALs vs outro BDR com 41 SALs e R$ 3,57M — mostrando que volume sem ICP correto não gera resultado proporcional.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">GMV Médio por Show</span><span class="gtag gq">Qualidade</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Valor médio de GMV gerado por reunião realizada. Indicador de <strong>qualidade de prospecção</strong> — GMV médio baixo sinaliza que o BDR está prospectando fora do ICP, mesmo com alto volume de shows.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Campo Belo tem apenas 23 BDRs, mas GMV médio por BDR de <strong>R$ 330k</strong> — um dos mais competitivos, evidenciando alta qualidade vs volume.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">BDR com GMV médio abaixo de R$ 10k por show prospecta empresas pequenas demais. Ao redirecionar para GMV > R$ 30k, a conversão saltou de <strong>11% para ~35%</strong>.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Contratos Assinados</span><span class="gtag gr">Resultado</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Número de contratos fechados após o processo de SAL. Representa a <strong>conversão final</strong> do funil comercial — transforma o esforço de prospecção em receita contratada.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Q1 2026: de <strong>1.628 SALs</strong>, apenas <strong>62 contratos</strong> assinados — taxa SAL→contrato de 3,8%, gerando R$ 5,41M em GMV contratado.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Shows com empresas de <strong>200k+ GMV</strong> têm potencial de contrato estratégico — existe protocolo específico que o TL deve acionar imediatamente ao identificar esse perfil.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Atingimento da Meta</span><span class="gfull">(SALs realizados ÷ Goal) × 100</span><span class="gtag gr">Resultado</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Percentual do objetivo periódico alcançado. Indicador mais direto de desempenho da equipe no período — serve de referência comparativa entre períodos e entre BUs.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Q1 2026: atingimento de <strong>44,8%</strong> vs meta de 3.635 SALs — queda de 15,7 p.p. em relação ao Q1 2025 (60,5%), exigindo revisão das alavancas para o Q2.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Abril/2026: com 599 SALs acumulados no dia 15 e meta de 1.197, atingimento parcial de <strong>26,1%</strong> — requerendo 44,3 shows/dia nos 10 dias restantes.</span></div>
+          </td>
+        </tr>
+
+        <!-- ── ATIVIDADE LEADING ── -->
+        <tr class="gcat"><td colspan="3">● INDICADORES DE ATIVIDADE (LEADING)</td></tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Agendamentos Realizados</span><span class="gtag gl">Leading</span></td>
+          <td class="gdesc">Total de reuniões marcadas via prospecção ativa (cold call, LinkedIn, e-mail). Indicador <strong>antecedente</strong> do volume de SALs — sem agendamentos suficientes, não há shows para converter.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Q1 2026: <strong>2.253 agendamentos</strong> geraram 1.628 SALs — taxa de conversão agend.→SAL de <strong>72,3%</strong>, principal ponto de alavancagem do funil.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">BDR com 9 agendamentos e 1 SAL (11%) está prospectando fora do ICP. O TL usa esse dado para corrigir o direcionamento <strong>antes</strong> que o SAL caia.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Produtividade/dia por BDR</span><span class="gtag gl">Leading</span><span class="gtag gq">Qualidade</span></td>
+          <td class="gdesc">Número médio de shows por BDR em um dia útil. Benchmark da Onfly: <strong>1 show/dia por BDR</strong>. Abaixo disso, o BDR precisa de 1:1 imediato — impacta diretamente o GAP do time.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Abril/2026: ACT de <strong>156 shows/dia</strong> para 150 BDRs = produtividade 1,04/BDR, abaixo da goal de 5,5/dia por TL — GAP de <strong>−4,46 shows/dia</strong>.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">O TL identifica diariamente BDRs com produtividade abaixo de 1 show/dia e realiza <strong>1:1 imediato</strong> para diagnóstico e correção de rota no mesmo dia.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Pipeline de Shows</span><span class="gtag gl">Leading</span></td>
+          <td class="gdesc">Volume de reuniões <strong>já agendadas</strong> para os próximos dias. Um pipeline vazio para os próximos 3 dias sinaliza queda iminente de produção antes que ela aconteça.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Com 443 shows faltando em 10 dias, o TL verifica se o pipeline tem agendamentos suficientes para os próximos 3 dias — se não, intensifica a cadência de prospecção ativa imediatamente.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">O Forecast de Abril indica <strong>1.672 shows totais</strong> (1,40× a goal) — mas só se concretiza se o pipeline de agendamentos for mantido ativo até o fim do mês.</span></div>
+          </td>
+        </tr>
+
+        <!-- ── GESTÃO DE METAS ── -->
+        <tr class="gcat"><td colspan="3">● INDICADORES DE GESTÃO DE METAS (MTD)</td></tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">MTD</span><span class="gfull">Month-to-Date</span><span class="gtag gm">Gestão de Metas</span></td>
+          <td class="gdesc">Acumulado de shows desde o início do mês até hoje. <strong>Termômetro diário</strong> do TL: mostra se o time está no ritmo para bater a goal mensal ou precisa de aceleração imediata.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Em 15/04/2026, MTD acumulado: <strong>599 shows</strong> — 26,1% da meta de 1.197, com 10 dias restantes. Ritmo atual projeta apenas 312 shows no mês.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">MTD abaixo de 25% com 50% do mês consumido = <strong>sinal laranja</strong>: aumentar cadência de prospecção ativa e revisar pipeline imediatamente.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">GAP de Produtividade</span><span class="gfull">ACT/dia − shows/dia necessários</span><span class="gtag gm">Gestão de Metas</span></td>
+          <td class="gdesc">Diferença entre a produtividade atual e a necessária para bater a goal no período restante. GAP negativo indica quanto o time precisa <strong>acelerar por dia</strong> para fechar o mês na meta.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">ACT 1,04/BDR e goal de 5,5/TL: GAP de <strong>−4,46 shows/dia</strong> — o time precisa aumentar 4,46 shows diários nos 10 dias restantes para fechar na meta.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">GAP negativo aciona diagnóstico imediato: verificar bloqueios de agenda, qualificação e canal de prospecção — transformar o GAP em <strong>plano de sprint</strong> concreto.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">ACT</span><span class="gfull">Shows Realizados no Dia</span><span class="gtag gm">Gestão de Metas</span><span class="gtag gl">Leading</span></td>
+          <td class="gdesc">Volume de shows realizados no dia atual. Alimenta o cálculo do MTD e GAP. O ACT de hoje é o <strong>único leading indicator</strong> que o TL ainda pode influenciar para mudar a trajetória do mês.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Em 15/04/2026: ACT de <strong>156 shows</strong> para 150 BDRs — produtividade de 1,04/BDR, abaixo do ritmo necessário de 5,5/TL para fechar Abril na meta.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">TL que acompanha o ACT antes das 9h30 age no mesmo dia: identifica BDRs sem reuniões, reforça cold call e garante que o dia contribua para <strong>reduzir o GAP</strong>.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Forecast</span><span class="gfull">Projeção de Shows</span><span class="gtag gm">Gestão de Metas</span><span class="gtag gl">Leading</span></td>
+          <td class="gdesc">Estimativa de shows até o fim do mês, considerando o pipeline ativo e histórico de no-show. Permite ao TL antecipar se a meta será atingida e <strong>agir antes do fim do mês</strong>.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Forecast dias restantes: <strong>171 shows</strong> (sem no-show: 137). Total projetado ACT + pipeline: 736 — ainda 443 shows abaixo da meta de 1.197.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Forecast Total (ACT + Potencial) de <strong>1.672 shows</strong> é 1,40× a goal — mas só se concretiza se o time mantiver ritmo e o pipeline não cair.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">TWD</span><span class="gfull">Dias Úteis Restantes</span><span class="gtag gm">Gestão de Metas</span></td>
+          <td class="gdesc">Dias úteis restantes no mês. Usado para calcular o ritmo diário: <strong>shows faltantes ÷ TWD = shows/dia necessários</strong>. Quanto menor o TWD, maior o ritmo exigido para recuperar o atraso.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">TWD = 10 dias e 443 shows faltando: ritmo necessário de <strong>44,3 shows/dia</strong> no time. O TL usa isso na daily para traduzir a meta em ação diária concreta.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">No dia 1 do mês, TWD = 20 e meta diária é de 59,8 shows. À medida que o mês avança sem atingir o ritmo, <strong>a pressão diária aumenta</strong> — reforçando a gestão diária.</span></div>
+          </td>
+        </tr>
+
+        <!-- ── CONVERSÃO ── -->
+        <tr class="gcat"><td colspan="3">● INDICADORES DE CONVERSÃO E QUALIDADE DO FUNIL</td></tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Taxa Agend. → SAL</span><span class="gtag gq">Qualidade</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Percentual de agendamentos que se transformam em SALs. Mede a <strong>qualidade dos agendamentos</strong> — taxa baixa indica prospects fora do ICP, qualificação ruim ou alto índice de no-show.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Q1 2026: taxa de <strong>72,3%</strong> (1.628 SALs de 2.253 agendamentos). BDR com taxa abaixo de 50% sinaliza problema na qualificação do perfil prospectado.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Ao redirecionar prospecção para empresas com GMV > R$ 30k, a taxa saltou de <strong>11% para ~35%</strong> — direcionamento (d) multiplicou o resultado (W = F × d).</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">Taxa SAL → Contrato</span><span class="gtag gq">Qualidade</span><span class="gtag gla">Lagging</span></td>
+          <td class="gdesc">Percentual de SALs convertidos em contratos. Mede a <strong>eficiência do fechamento</strong> — quantos shows resultam em receita real para a empresa.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">Q1 2026: taxa SAL→contrato de <strong>3,8%</strong> (62 contratos de 1.628 SALs) — cada contrato representa ~26 shows, com GMV médio contratado de R$ 87k.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">Shows com <strong>Mid Market (R$ 20k–199k GMV)</strong> apresentam taxa de conversão superior. O TL monitora por BDR para identificar quem mais fecha e replicar a abordagem.</span></div>
+          </td>
+        </tr>
+
+        <!-- ── CONCEITOS ── -->
+        <tr class="gcat"><td colspan="3">● CONCEITOS FUNDAMENTAIS (SLG e W = F × d)</td></tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">W = F × d</span><span class="gfull">Trabalho = Força × Deslocamento</span><span class="gtag gm">Conceito</span></td>
+          <td class="gdesc"><strong>W (Resultado)</strong> = SALs e GMV; <strong>F (Força)</strong> = volume de prospecção; <strong>d (Deslocamento)</strong> = direcionamento correto ao ICP. Se d = 0 (fora do ICP), W = 0, independente do volume gerado.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">BDR com <strong>100 ligações/dia</strong> para empresas fora do ICP tem F alta, mas d = 0 → W = 0. O mesmo esforço direcionado ao perfil certo multiplica o resultado sem aumentar o volume.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t"><strong>"Meu time está se movendo na direção certa — ou apenas se movendo?"</strong> O TL usa o GMV médio por show para verificar diariamente se o deslocamento está correto.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">SLG</span><span class="gfull">Sales-Led Growth</span><span class="gtag gm">Conceito</span></td>
+          <td class="gdesc">Modelo em que a <strong>força de vendas humana</strong> é o principal motor de crescimento. Na Onfly, cada BDR é vetor direto de receita e o TL é o multiplicador — ao contrário do PLG (produto) e MLG (marketing).</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">No SLG da Onfly: <strong>mais SALs = mais contratos = mais receita</strong>. O TL que aumenta a produtividade do squad em 10% gera impacto proporcional no faturamento da empresa.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">O TL não é avaliado pelo número individual, mas pelo <strong>número coletivo do squad</strong>. A maior alavanca no SLG é um time inteiro performando consistentemente acima de 1 show/dia.</span></div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="gname"><span class="gacr">ICP</span><span class="gfull">Ideal Customer Profile</span><span class="gtag gq">Qualidade</span><span class="gtag gl">Leading</span></td>
+          <td class="gdesc">Perfil de empresa com maior probabilidade de converter e gerar alto GMV. Na Onfly: <strong>Mid Market (GMV R$ 20k–199k)</strong> é o foco principal; acima de R$ 200k são contas estratégicas com protocolo específico.</td>
+          <td class="gex">
+            <div class="gex-item"><span class="gex-n">1</span><span class="gex-t">BDRs prospectando empresas com GMV < R$ 10k geram shows de baixo potencial. Ao alinhar ao ICP (GMV > R$ 30k), a conversão subiu de <strong>11% para 35%</strong> em uma semana.</span></div>
+            <div class="gex-item"><span class="gex-n">2</span><span class="gex-t">O TL monitora o <strong>GMV médio dos últimos shows</strong> como proxy diário do ICP. Se cair consecutivamente, o time está prospectando fora do perfil e precisa de realinhamento.</span></div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+    </div><!-- /modal-body -->
+
+    <!-- RODAPÉ MODAL -->
+    <div class="modal-footer">
+      <span>ONFLY · PLANO DE VOO · DEMAND GENERATION · 2026</span>
+      <span>15 indicadores e KPIs · Referência para Team Leaders</span>
+    </div>
+
+  </div><!-- /modal-box -->
+</div><!-- /modal-overlay -->
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let cur = 0;
+let glossarioAberto = false;
+
+function update() {
+  slides.forEach((s,i) => s.classList.toggle('active', i === cur));
+  document.getElementById('counter').textContent = (cur+1) + ' / ' + total;
+  document.getElementById('prog').style.width = ((cur+1)/total*100) + '%';
+}
+
+function go(dir) {
+  if (glossarioAberto) return; // não navega com glossário aberto
+  cur = Math.max(0, Math.min(total-1, cur+dir));
+  update();
+}
+
+function toggleGlossario() {
+  const modal = document.getElementById('modal-glossario');
+  const btn   = document.getElementById('btn-glossario');
+  glossarioAberto = !glossarioAberto;
+  modal.classList.toggle('open', glossarioAberto);
+  btn.classList.toggle('active', glossarioAberto);
+  // impede scroll da página principal quando modal está aberto
+  document.body.style.overflow = glossarioAberto ? 'hidden' : '';
+}
+
+// Fecha ao clicar fora do modal-box
+document.getElementById('modal-glossario').addEventListener('click', function(e) {
+  if (e.target === this) toggleGlossario();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && glossarioAberto) { toggleGlossario(); return; }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+});
+
+update();
+</script>
+</body>
+</html>
